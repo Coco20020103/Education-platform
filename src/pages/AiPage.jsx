@@ -58,17 +58,20 @@ const AiPage = () => {
   // Set welcome message when course changes
   useEffect(() => {
     setMessages([{ role: 'assistant', content: currentCourse.welcome }]);
-  }, [id]);
+  }, [id, currentCourse.welcome]); 
 
   // Auto-scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+ 
   // Handle message submission to AI API
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    console.log("API Key loaded:", !!process.env.REACT_APP_DEEPSEEK_KEY); 
 
     // Add user message to chat
     const userMessage = { role: 'user', content: input };
@@ -78,24 +81,26 @@ const AiPage = () => {
 
     try {
       // API request to AI service
-      const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.REACT_APP_ALIYUN_KEY}`,
+          'Authorization': `Bearer ${process.env.REACT_APP_DEEPSEEK_KEY}`,
         },
         body: JSON.stringify({
-          model: 'qwen-turbo',
+          model: 'deepseek-chat',
           messages: [
             { role: 'system', content: currentCourse.prompt },
             ...messages.slice(-6),
             userMessage
-          ]
+          ],
+          temperature: 0.7,
         })
       });
       // Process API response
       const data = await response.json();
-      const aiResponse = data.choices?.[0]?.message?.content || "I couldn't process that request. Please try again.";
+      const aiResponse = data.choices?.[0]?.message?.content || 
+        "I couldn't process that request. Please try again.";
       
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (error) {
@@ -134,7 +139,7 @@ const AiPage = () => {
               onClick={() => navigate(`/ai/${lessonId}`)}
               style={{
                 ...styles.navButton,
-                ...(id == lessonId ? styles.activeNavButton : {}),
+                ...(id === lessonId ? styles.activeNavButton : {}),
                 justifyContent: isSidebarCollapsed ? 'center' : 'flex-start'
               }}
             >
@@ -411,5 +416,4 @@ const styles = {
     transition: 'background-color 0.3s',
   }
 };
-
 export default AiPage;

@@ -71,8 +71,8 @@ const PhishingEmailPractice = () => {
       <div style={styles.emailContainer}>
         {/* Email header */}
         <div style={styles.emailHeader}>
-          <p><strong>sender</strong> {phishingEmail.sender}</p>
-          <p><strong>Topic:</strong> {phishingEmail.subject}</p>
+          <p><strong>Sender:</strong> {phishingEmail.sender}</p>
+          <p><strong>Subject:</strong> {phishingEmail.subject}</p>
         </div>
 
         {/* Email content */}
@@ -89,39 +89,39 @@ const PhishingEmailPractice = () => {
       {!showAnalysis ? (
         <>
           {/* Phase 1: Initial judgment */}
-          {userResponse === null ? (
-            <div style={styles.questionGroup}>
-              <h3 style={styles.question}>Is this a phishing email?</h3>
-              <label style={styles.option}>
-                <input
-                  type="radio"
-                  name="phishing"
-                  checked={userResponse === 'phishing'}
-                  onChange={() => setUserResponse('phishing')}
-                />
-                <span>✅ Yes, it is.</span>
-              </label>
-              <label style={styles.option}>
-                <input
-                  type="radio"
-                  name="phishing"
-                  checked={userResponse === 'legit'}
-                  onChange={() => setUserResponse('legit')}
-                />
-                <span>❌ No, it isn't. </span>
-              </label>
-              <label style={styles.option}>
-                <input
-                  type="radio"
-                  name="phishing"
-                  checked={userResponse === 'unsure'}
-                  onChange={() => setUserResponse('unsure')}
-                />
-                <span>🤔 Not sure. </span>
-              </label>
-            </div>
-          ) : (
-            /* Phase 2: Detailed analysis */
+          <div style={styles.questionGroup}>
+            <h3 style={styles.question}>Is this a phishing email?</h3>
+            <label style={styles.option}>
+              <input
+                type="radio"
+                name="phishing"
+                checked={userResponse === 'phishing'}
+                onChange={() => setUserResponse('phishing')}
+              />
+              <span>✅ Yes, it is.</span>
+            </label>
+            <label style={styles.option}>
+              <input
+                type="radio"
+                name="phishing"
+                checked={userResponse === 'legit'}
+                onChange={() => setUserResponse('legit')}
+              />
+              <span>❌ No, it isn't. </span>
+            </label>
+            <label style={styles.option}>
+              <input
+                type="radio"
+                name="phishing"
+                checked={userResponse === 'unsure'}
+                onChange={() => setUserResponse('unsure')}
+              />
+              <span>🤔 Not sure. </span>
+            </label>
+          </div>
+
+          {/* Phase 2: Detailed analysis (only if user selected "Yes") */}
+          {userResponse === 'phishing' && (
             <div style={styles.questionGroup}>
               <h3 style={styles.question}>Select all suspicious signs (multiple choice)</h3>
               {phishingEmail.redFlags.map((flag, index) => (
@@ -139,10 +139,7 @@ const PhishingEmailPractice = () => {
 
           <button
             onClick={handleSubmit}
-            disabled={
-              userResponse === null || 
-              (userResponse === 'phishing' && selectedFlags.length === 0)
-            }
+            disabled={userResponse === null || (userResponse === 'phishing' && selectedFlags.length === 0)}
             style={styles.submitButton}
           >
             {userResponse === null ? 'Submit your choice' : 'Verify your choice'}
@@ -151,40 +148,63 @@ const PhishingEmailPractice = () => {
       ) : (
         /* Results feedback */
         <div style={styles.feedback}>
-          {checkAnswers() === "perfect" ? (
+          {userResponse === 'legit' ? (
             <>
-              <h3 style={styles.successTitle}>🎉 Perfect Detection!</h3>
-              <p>You successfully identified all phishing indicators:</p>
-              <ul style={styles.flagList}>
-                {phishingEmail.redFlags.map((flag, i) => (
-                  <li key={i}>✔️ {flag}</li>
-                ))}
-              </ul>
-            </>
-          ) : checkAnswers() === "partial" ? (
-            <>
-              <h3 style={styles.partialTitle}>⚠️ Partially Correct</h3>
-              <p>You found some issues but missed others:</p>
-              <ul style={styles.flagList}>
-                {phishingEmail.redFlags.map((flag, i) => (
-                  <li key={i} style={{
-                    color: selectedFlags.includes(flag) ? 'green' : 'red'
-                  }}>
-                    {selectedFlags.includes(flag) ? '✔️' : '❌'} {flag}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <>
-              <h3 style={styles.errorTitle}>❌ Needs Improvement</h3>
-              <p>This is a typical phishing email with these characteristics:</p>
+              <h3 style={styles.errorTitle}>❌ Incorrect Judgment</h3>
+              <p>This is actually a phishing email! Let's analyze why:</p>
               <ul style={styles.flagList}>
                 {phishingEmail.redFlags.map((flag, i) => (
                   <li key={i}>🔍 {flag}</li>
                 ))}
               </ul>
             </>
+          ) : userResponse === 'unsure' ? (
+            <>
+              <h3 style={styles.errorTitle}>⚠️ You were unsure</h3>
+              <p>This is a phishing email. Here are the warning signs:</p>
+              <ul style={styles.flagList}>
+                {phishingEmail.redFlags.map((flag, i) => (
+                  <li key={i}>🔍 {flag}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            /* User selected "Yes" (phishing) */
+            checkAnswers() === "perfect" ? (
+              <>
+                <h3 style={styles.successTitle}>🎉 Perfect Detection!</h3>
+                <p>You successfully identified all phishing indicators:</p>
+                <ul style={styles.flagList}>
+                  {phishingEmail.redFlags.map((flag, i) => (
+                    <li key={i}>✔️ {flag}</li>
+                  ))}
+                </ul>
+              </>
+            ) : checkAnswers() === "partial" ? (
+              <>
+                <h3 style={styles.partialTitle}>⚠️ Partially Correct</h3>
+                <p>You found some issues but missed others:</p>
+                <ul style={styles.flagList}>
+                  {phishingEmail.redFlags.map((flag, i) => (
+                    <li key={i} style={{
+                      color: selectedFlags.includes(flag) ? 'green' : 'red'
+                    }}>
+                      {selectedFlags.includes(flag) ? '✔️' : '❌'} {flag}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h3 style={styles.errorTitle}>❌ Needs Improvement</h3>
+                <p>This is a typical phishing email with these characteristics:</p>
+                <ul style={styles.flagList}>
+                  {phishingEmail.redFlags.map((flag, i) => (
+                    <li key={i}>🔍 {flag}</li>
+                  ))}
+                </ul>
+              </>
+            )
           )}
 
           <div style={styles.tipBox}>
@@ -206,7 +226,7 @@ const PhishingEmailPractice = () => {
   );
 };
 
-// Styles remain the same
+// Styles (保持不变)
 const styles = {
   header: {
     textAlign: 'center',
